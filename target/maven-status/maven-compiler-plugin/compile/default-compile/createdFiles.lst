@@ -1,0 +1,12 @@
+com\whoknows\Connectify\entity\ChatMessage.class
+com\whoknows\Connectify\config\SecurityConfig.class
+com\whoknows\Connectify\repository\UserRepository.class
+com\whoknows\Connectify\service\UserService.class
+com\whoknows\Connectify\controller\ChatController.class
+com\whoknows\Connectify\ConnectifyApplication.class
+com\whoknows\Connectify\service\UserDetailsServiceImpl.class
+com\whoknows\Connectify\controller\UserController.class
+com\whoknows\Connectify\entity\User.class
+com\whoknows\Connectify\HealthCheck.class
+com\whoknows\Connectify\config\WebSocketConfig.class
+com\whoknows\Connectify\repository\ChatMessageRepository.class

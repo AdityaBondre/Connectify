@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Application</title>
+    <style>
+        /* General Reset */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            height: 100vh;
+            overflow: hidden; /* Prevent overflow */
+        }
+
+        /* Main Container */
+        .main-container {
+            display: flex;
+            flex-grow: 1;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 300px;
+            background-color: #2c3e50;
+            color: white;
+            padding: 20px;
+            transition: transform 0.3s ease-in-out;
+            position: relative;
+            z-index: 10; /* Ensure sidebar is above other elements */
+            transform: translateX(0); /* Start in visible position */
+        }
+
+        .sidebar h2 {
+            margin-bottom: 20px;
+        }
+
+        .user-list,
+        .group-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .user-item,
+        .group-item {
+            margin-bottom: 15px;
+        }
+
+        .user-item a,
+        .group-item a {
+            display: block;
+            padding: 10px;
+            background-color: #3498db;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            text-align: center;
+        }
+
+        .user-item a:hover,
+        .group-item a:hover {
+            background-color: #2980b9;
+        }
+
+        /* Chat Section */
+        .chat-section {
+            flex-grow: 1;
+            padding: 20px;
+            background-color: #ecf0f1;
+            position: relative;
+        }
+
+        #chat-box {
+            height: 80%;
+            overflow-y: auto;
+            background-color: #fff;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .message {
+            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+             background-color: #c2c6c7;
+            color: #2c3e50;
+        }
+
+        .my-message {
+            text-align: right;
+            background-color: #3498db;
+            color: white;
+        }
+
+        .other-message {
+            text-align: left;
+            background-color: #c2c6c7;
+            color: #2c3e50;
+        }
+
+        .input-container {
+            display: flex;
+        }
+
+        #messageInput {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            margin-right: 10px;
+        }
+
+        .send-button {
+            padding: 10px 20px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .send-button:hover {
+            background-color: #2980b9;
+        }
+
+        /* Toggle Button */
+        .toggle-sidebar {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px;
+            cursor: pointer;
+            position: absolute;
+            left: 0; /* Aligns the button with the sidebar */
+            top: 50%; /* Center vertically */
+            transform: translateY(-50%); /* Adjust for exact center */
+            z-index: 20; /* Higher z-index to ensure it stays above other elements */
+            display: none; /* Hidden by default, shown in mobile view */
+            border-radius: 5px;
+        }
+
+        /* Arrow styles for the button */
+        .toggle-sidebar:before {
+            content: '>';
+            font-size: 1.5rem;
+        }
+
+        .toggle-sidebar.active:before {
+            content: '<';
+        }
+
+        /* Overlay */
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 9;
+        }
+
+        /* Media Queries */
+        @media (max-width: 768px) {
+            .sidebar {
+                position: fixed;
+                top: 0;
+                left: 0;
+                height: 100%;
+                transform: translateX(-100%);
+            }
+
+            .sidebar.active {
+                transform: translateX(0);
+            }
+
+            .toggle-sidebar {
+                display: block; /* Show toggle button in mobile view */
+            }
+
+            .overlay.active {
+                display: block;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="main-container">
+    <!-- Sidebar (User List & Group Chat) -->
+    <div class="sidebar" id="sidebar">
+        <h2>Available Users</h2>
+        <ul class="user-list">
+            <li th:each="user : ${users}" class="user-item">
+                <a th:href="@{/friend-chat/{username}(username=${user.username})}">
+                    Chat with <span th:text="${user.name}"></span>
+                </a>
+            </li>
+        </ul>
+
+        <h2>Group Chat</h2>
+        <ul class="group-list">
+            <li class="group-item">
+                <a href="/talk" class="send-button">Go to Group Chat</a>
+            </li>
+        </ul>
+    </div>
+
+    <!-- Chat Section -->
+    <div class="chat-section">
+        <!-- Toggle Sidebar Button -->
+        <button class="toggle-sidebar" id="toggleButton"></button>
+        <!-- Overlay -->
+        <div class="overlay" id="overlay"></div>
+        <!-- Chat Box -->
+        <div id="chat-box">
+            <h2>Chat with <span th:text="${friend}"></span></h2>
+            <div th:each="message : ${chatHistory}">
+                <div th:text="${message.sender} + ': ' + ${message.content}" class="message"
+                     th:classappend="${message.sender == currentUser} ? 'my-message' : ''">
+                </div>
+            </div>
+        </div>
+
+        <!-- Message Input and Send Button -->
+        <div class="input-container">
+            <input type="text" id="messageInput" placeholder="Enter your message" />
+            <button class="send-button" onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+</div>
+
+<!-- Store the current username and friend's username in hidden inputs -->
+<input type="hidden" id="currentUser" th:value="${currentUser}" />
+<input type="hidden" id="friend" th:value="${friend}" />
+
+<!-- Include SockJS and STOMP libraries -->
+<script src="https://cdn.jsdelivr.net/sockjs/1.0.2/sockjs.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+
+<script>
+    const toggleButton = document.getElementById('toggleButton');
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('overlay');
+
+    // Toggle the sidebar and show the overlay
+    toggleButton.addEventListener('click', function() {
+        sidebar.classList.toggle('active');
+        overlay.classList.toggle('active');
+        toggleButton.classList.toggle('active'); // Toggle button state
+    });
+
+    // Hide the sidebar and overlay when clicking outside the sidebar
+    overlay.addEventListener('click', function() {
+        sidebar.classList.remove('active');
+        overlay.classList.remove('active');
+        toggleButton.classList.remove('active'); // Reset button state
+    });
+
+    // WebSocket connection setup
+    var stompClient = null;
+    var currentUser = document.getElementById('currentUser').value;  // Get the logged-in user's username
+    var friend = document.getElementById('friend').value;  // Get the friend's username
+
+    function connect() {
+        var socket = new SockJS('/chat');
+        stompClient = Stomp.over(socket);
+        stompClient.connect({}, function (frame) {
+            stompClient.subscribe('/topic/friend-messages', function (message) {
+                var messageData = JSON.parse(message.body);
+                var sender = messageData.sender;
+                var content = atob(messageData.content);  // Decode the content
+                showMessage(sender + ": " + content, sender === currentUser ? 'my-message' : '');
+            });
+        });
+    }
+
+    function sendMessage() {
+        var messageContent = document.getElementById('messageInput').value;
+        if (messageContent && stompClient) {
+            var message = {
+                sender: currentUser,
+                content: btoa(messageContent),  // Encode message content
+                recipient: friend
+            };
+            stompClient.send("/app/sendFriendMessage", {}, JSON.stringify(message));
+            document.getElementById('messageInput').value = ""; // Clear the input
+        }
+    }
+
+    function showMessage(message, className) {
+        var chatBox = document.getElementById('chat-box');
+        var messageElement = document.createElement('div');
+        messageElement.className = 'message ' + className;
+        messageElement.appendChild(document.createTextNode(message));
+        chatBox.appendChild(messageElement);
+        chatBox.scrollTop = chatBox.scrollHeight; // Auto-scroll to the latest message
+    }
+
+    // Connect to WebSocket on page load
+    connect();
+</script>
+
+</body>
+</html>

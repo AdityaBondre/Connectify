@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Form with Animated Background</title>
+    <style>
+        /* General Reset */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            height: 100vh;
+            background: #0d0d0d; /* Dark background */
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Arial', sans-serif;
+        }
+
+        .form-container {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 2rem;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+            position: relative;
+            z-index: 2;
+            width: 320px;
+            box-shadow: 0px 4px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        label {
+            color: #fff;
+            font-size: 1rem;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            margin: 0.5rem 0;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 5px;
+            color: #fff;
+        }
+
+        input::placeholder {
+            color: #ccc;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            background: #ff4d4d;
+            border: none;
+            border-radius: 5px;
+            color: #fff;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        button:hover {
+            background: #ff3333;
+        }
+
+        .signup-btn {
+            background: #4d94ff;
+        }
+
+        .signup-btn:hover {
+            background: #337ab7;
+        }
+
+        /* Animated Crystal-like Shapes */
+        .crystal {
+            position: absolute;
+            background: linear-gradient(45deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0));
+            border-radius: 50%;
+            filter: blur(10px);
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .form-container {
+                width: 90%;
+                padding: 1.5rem;
+            }
+
+            button {
+                font-size: 0.9rem;
+            }
+
+            input {
+                font-size: 0.9rem;
+            }
+
+            label {
+                font-size: 0.9rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .form-container {
+                width: 100%;
+                padding: 1rem;
+            }
+
+            label {
+                font-size: 0.8rem;
+            }
+
+            input {
+                padding: 8px;
+                font-size: 0.8rem;
+            }
+
+            button {
+                font-size: 0.8rem;
+                padding: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="form-container">
+    <form th:action="@{/login}" method="post">
+        <label for="username">Username:</label>
+        <input type="text" id="username" name="username" placeholder="Enter your username">
+
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password" placeholder="Enter your password">
+
+        <button type="submit">Login</button>
+    </form>
+
+    <!-- Integrated Sign Up Button -->
+    <form th:action="@{/signup}" method="get">
+        <button type="submit" class="signup-btn">Sign Up</button>
+    </form>
+</div>
+
+<!-- Background Animated Shapes will be generated via JS -->
+<div id="crystal-container"></div>
+
+<script>
+    // JavaScript to dynamically create moving crystal elements
+    const crystalContainer = document.getElementById('crystal-container');
+    const numCrystals = 10; // Number of crystals for this background
+
+    // Function to generate random crystals
+    function createCrystals() {
+        for (let i = 0; i < numCrystals; i++) {
+            const crystal = document.createElement('div');
+            crystal.classList.add('crystal');
+
+            // Randomize size, position, and animation speed
+            const size = Math.random() * 120 + 50; // Size between 50px and 170px
+            const top = Math.random() * 100; // Random top position (0% to 100%)
+            const left = Math.random() * 100; // Random left position (0% to 100%)
+            const animationDuration = Math.random() * 20 + 5; // Random animation duration between 5s and 25s
+
+            crystal.style.width = `${size}px`;
+            crystal.style.height = `${size}px`;
+            crystal.style.top = `${top}vh`;
+            crystal.style.left = `${left}vw`;
+            crystal.style.animation = `move-crystal ${animationDuration}s ease-in-out infinite alternate`;
+
+            // Append the crystal to the container
+            crystalContainer.appendChild(crystal);
+        }
+    }
+
+    // Define keyframes for moving crystals
+    const styleSheet = document.styleSheets[0];
+    styleSheet.insertRule(`
+        @keyframes move-crystal {
+            0% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(100px, -50px) scale(1.2); }
+            100% { transform: translate(-50px, 50px) scale(0.8); }
+        }
+    `, styleSheet.cssRules.length);
+
+    // Call the function to create crystals
+    createCrystals();
+</script>
+
+</body>
+</html>
